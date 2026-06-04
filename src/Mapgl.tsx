@@ -25,12 +25,11 @@ export default function Mapgl() {
                 center: MAP_CENTER,
                 zoom: 13,
                 key: '649a0d31-f13d-4dc7-b9bd-8c06e7390c4f',
-//                style: '3ab96106-8f64-42b7-ba6b-7035e12b12d2', //2gis
-                style: '8c3e5ff3-bff3-4064-a574-bd6fddb0ffe0',
+                style: '7b540eca-ce52-44a9-b84c-fdc8543ccad9',
+                //                style: '3ab96106-8f64-42b7-ba6b-7035e12b12d2', //2gis
+                //  style: '8c3e5ff3-bff3-4064-a574-bd6fddb0ffe0', //6лб
                 maxPitch: 70,
                 lowZoomMaxPitch: 45,
-                trafficControl: 'topLeft',
-                trafficOn: true,
             });
 
             map.on('click', (e) => console.log(e));
@@ -40,6 +39,16 @@ export default function Mapgl() {
              */
             map.patchStyleState({ globeEnabled: true });
             map.patchStyleState({ immersiveRoadsOn: true });
+
+            // Пробки через DOM-кнопку
+            const trafficToggle = document.getElementById('traffic-toggle');
+            trafficToggle?.addEventListener('click', () => {
+                if ((map as any).isTrafficOn()) {
+                    (map as any).hideTraffic();
+                } else {
+                    (map as any).showTraffic();
+                }
+            });
 
             /**
              * Ruler plugin
@@ -75,7 +84,7 @@ export default function Mapgl() {
             });
 
             /**
-             * GeoJSON — тепловая карта ДТП
+             * GeoJSON данные
              */
             const rawData = geoData as FeatureCollection<Geometry, GeoJsonProperties>;
 
@@ -84,19 +93,57 @@ export default function Mapgl() {
                 features: rawData.features.filter((f) => f.geometry !== null),
             };
 
+            // Источник для точек с подписями
             new mapgl.GeoJsonSource(map, {
                 data,
                 attributes: {
-                    visible: true,
+                    purpose: 'points',
                 },
             });
 
+            // Источник для тепловой карты
+            new mapgl.GeoJsonSource(map, {
+                data,
+                attributes: {
+                    purpose: 'heatmap',
+                },
+            });
+
+            /**
+             * Слой точек с подписями
+             */
+            const pointsLayer: any = {
+                id: 'dtp-points-layer',
+                filter: [
+                    'match',
+                    ['sourceAttr', 'purpose'],
+                    ['points'],
+                    true,
+                    false,
+                ],
+                type: 'point',
+                style: {
+                    iconImage: 'marker',
+                    iconWidth: 15,
+                    textField: ['get', 'severity'],
+                    textFont: ['Noto_Sans'],
+                    textColor: '#672044',
+                    textHaloColor: '#FFC6C4',
+                    textHaloWidth: 1,
+                    iconPriority: 100,
+                    textPriority: 100,
+                },
+            };
+
+            /**
+             * Тепловая карта
+             */
             const heatmapLayer: any = {
                 id: 'dtp-heatmap-layer',
                 filter: [
                     'match',
-                    ['sourceAttr', 'visible'],
-                    [true],
+                    ['sourceAttr', 'purpose'],
+                    ['heatmap'],
                     true,
                     false,
                 ],
@@ -121,6 +168,7 @@ export default function Mapgl() {
             };
 
             map.on('styleload', () => {
+                map?.addLayer(pointsLayer);
                 map?.addLayer(heatmapLayer);
             });
 
@@ -145,6 +193,23 @@ export default function Mapgl() {
         <>
             <MapWrapper />
             <ControlRotateCounterclockwise />
+            <button
+                id="traffic-toggle"
+                style={{
+                    position: 'absolute',
+                    top: 10,
+                    left: 10,
+                    zIndex: 1000,
+                    padding: '8px 12px',
+                    background: '#FFC6C4',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                }}
+            >
+                Пробки
+            </button>
         </>
     );
 }
