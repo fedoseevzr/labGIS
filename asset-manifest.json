@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/labGIS/static/css/main.7f4dc822.css",
-    "main.js": "/labGIS/static/js/main.ed12b3a6.js",
+    "main.js": "/labGIS/static/js/main.d4be7374.js",
     "index.html": "/labGIS/index.html",
     "main.7f4dc822.css.map": "/labGIS/static/css/main.7f4dc822.css.map",
-    "main.ed12b3a6.js.map": "/labGIS/static/js/main.ed12b3a6.js.map"
+    "main.d4be7374.js.map": "/labGIS/static/js/main.d4be7374.js.map"
   },
   "entrypoints": [
     "static/css/main.7f4dc822.css",
-    "static/js/main.ed12b3a6.js"
+    "static/js/main.d4be7374.js"
   ]
 }
